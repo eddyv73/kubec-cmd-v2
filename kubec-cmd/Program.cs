@@ -2,9 +2,13 @@
 
 class Program
 {
-    const string configsuffix  = "config_";
-    private const string _target = "";
-    private const string _context = "";
+    public static class GlobalVariables
+    {
+        public const string configsuffix  = "config_";
+        private const string _target = "";
+        private const string _context = "";
+    }
+
     
     static void Main(string[] args)
     {
