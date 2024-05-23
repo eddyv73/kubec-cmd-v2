@@ -6,21 +6,23 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using kubec_cmd;
 
 class FilesManager
 {
     private static string _target;
     private static string _context;
-    private static List<string> ConfigFound = new List<string>();
-    private static string dirbk = "path_to_backup_directory"; // Define this path
-    private static string kubeconfig = "path_to_kubeconfig"; // Define this path
-    private static string configsuffix = "config_suffix"; // Define this suffix
+    private static string userfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+    private static List<string> _ConfigFound = new List<string>();
+    private static string dirbk = Path.Join(userfile, ".kube",".bk"); // Define this path
+    private static string kubeconfig = Path.Join(userfile, ".kube");
     private static DirectoryInfo kubeconfigDir = new DirectoryInfo("path_to_kubeconfig_directory"); // Define this path
 
-    public static void SearchFiles(string target, string context)
+    public static void SearchFiles(string target, string context, List<string> configFile)
     {
         _target = target;
         _context = context;
+        _ConfigFound = configFile;
         CreateBackUpDirectory();
         Makebackup();
         GetConfig();
@@ -47,11 +49,11 @@ class FilesManager
         // Select config files
         foreach (var file in Directory.EnumerateFiles(kubeconfig, "*"))
         {
-            if (file.Contains(configsuffix))
+            if (file.Contains(Program.GlobalVariables.configsuffix))
             {
                 if (!file.Contains("bk") && !file.Contains(".back"))
                 {
-                    ConfigFound.Add(file);
+                    _ConfigFound.Add(file);
                 }
             }
         }
@@ -63,7 +65,7 @@ class FilesManager
         string result = DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss");
 
         // copy files .kube to .kube/bk and append _date + time
-        foreach (var file in ConfigFound)
+        foreach (var file in _ConfigFound)
         {
             string source = Path.Combine(kubeconfig, file);
             string destination = Path.Combine(dirbk, file + "_" + result);
@@ -81,14 +83,14 @@ class FilesManager
     public static void Clean()
     {
         // If exist file .kube/config
-        bool exist = File.Exists(kubeconfigDir.FullName);
+        bool exist = File.Exists(Path.Join(kubeconfig, "config"));
 
         // delete file .kube/config
         if (exist)
         {
             try
             {
-                File.Delete(kubeconfigDir.FullName);
+                File.Delete(Path.Join(kubeconfig, "config"));
             }
             catch (Exception)
             {
@@ -99,14 +101,14 @@ class FilesManager
 
     public static void SwitcherConfig()
     {
-        bool existTarget = File.Exists(kubeconfigDir.FullName + "_" + _target);
+        bool existTarget = File.Exists((Path.Join(kubeconfig, "config") + "_" + _target));
 
         if (existTarget)
         {
             Console.WriteLine("File exist");
-            string targetfile = configsuffix + _target;
+            string targetfile = Program.GlobalVariables.configsuffix + _target;
             string source = Path.Combine(kubeconfig, targetfile);
-            string destination = kubeconfigDir.FullName;
+            string destination = Path.Join(kubeconfig, "config");
             try
             {
                 File.Copy(source, destination);

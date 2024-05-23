@@ -24,7 +24,8 @@ public class ArgsController
             // Console.WriteLine("Argument 1 ↪︎ " + arguments[targetIndex]);
             // Console.WriteLine("Argument 2 ↪︎ " + arguments[targetIndex + 1]);
             Console.WriteLine("Target found ➥ " + targetFile);
-            FilesManager.SearchFiles(argsList.target, argsList.context);
+            var files = KubeConfigList.ListFilesInPath(); 
+            FilesManager.SearchFiles(argsList.target, argsList.context, files);
         } else if (args.Contains("--list"))
         {
             var files = KubeConfigList.ListFilesInPath(); 
