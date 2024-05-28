@@ -26,4 +26,23 @@ class KubeConfigList
 
         return configFound;
     }
+    public static List<string> ListFilesBackup()
+    {
+        var userfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string kubeconfigPath = Path.Join(userfile, ".kube", ".bk");
+        var filesToDelete = new List<string>();
+        var fileManager = new DirectoryInfo(kubeconfigPath);
+        FileInfo[] files = fileManager.GetFiles("*", SearchOption.AllDirectories);
+        foreach (var file in files)
+        {
+            file.Delete();
+            if (file.Name.Contains(Program.GlobalVariables.configsuffix))
+            {
+                filesToDelete.Add(file.Name);
+                
+            }
+        }
+        
+        return filesToDelete;
+    }
 }

@@ -10,6 +10,12 @@ public class ArgsController
     public Args ArgsControl (string[] args)
     {
         var argsList = new Args();
+        if (args.Length == 1 && args.Contains("--clean"))
+        {
+            var backfiles = KubeConfigList.ListFilesBackup();
+            
+            return argsList;
+        }
         if (args.Length == 1 && !args.Contains("--list"))
         {
             DirHelper.PrintInstructions();
@@ -26,7 +32,8 @@ public class ArgsController
             Console.WriteLine("Target found ➥ " + targetFile);
             var files = KubeConfigList.ListFilesInPath(); 
             FilesManager.SearchFiles(argsList.target, argsList.context, files);
-        } else if (args.Contains("--list"))
+        } 
+        else if (args.Contains("--list"))
         {
             var files = KubeConfigList.ListFilesInPath(); 
             foreach (var file in files)
