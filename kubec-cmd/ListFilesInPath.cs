@@ -17,7 +17,7 @@ class KubeConfigList
         {
             if (file.Name.Contains(Program.GlobalVariables.configsuffix))
             {
-                if (!file.Name.Contains("bk") && !file.Name.Contains(".back") && file.Name.Contains(Program.GlobalVariables.configsuffix))
+                if (!file.Name.Contains("bk") && !file.Name.Contains(".back") && file.Name.Contains(Program.GlobalVariables.configsuffix) && !file.DirectoryName.Contains(".bk"))
                 {
                     configFound.Add(file.Name);
                 }
