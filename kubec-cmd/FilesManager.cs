@@ -1,10 +1,11 @@
-﻿// FilesManager.cs
+// FilesManager.cs
 // kubec-cmd
 // Created by Eddy Wister on 25/11/22
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using kubec_cmd;
 

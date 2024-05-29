@@ -3,11 +3,23 @@
 // Created by Eddy Wister on 25/11/22
 
 using System;
+using System.Text;
 
 class DirHelper
 {
     public static void PrintInstructions()
     {
+        Console.OutputEncoding = Encoding.Unicode;
+        Console.WriteLine(" __    __            __                                                                 __ ");
+        Console.WriteLine("/  |  /  |          /  |                                                               /  |");
+        Console.WriteLine("$$ | /$$/  __    __ $$ |____    ______    _______          _______  _____  ____    ____$$ |");
+        Console.WriteLine("$$ |/$$/  /  |  /  |$$      \\  /      \\  /       |______  /       |/     \\/    \\  /    $$ |");
+        Console.WriteLine("$$  $$<   $$ |  $$ |$$$$$$$  |/$$$$$$  |/$$$$$$$//      |/$$$$$$$/ $$$$$$ $$$$  |/$$$$$$$ |");
+        Console.WriteLine("$$$$$  \\  $$ |  $$ |$$ |  $$ |$$    $$ |$$ |     $$$$$$/ $$ |      $$ | $$ | $$ |$$ |  $$ |");
+        Console.WriteLine("$$ |$$  \\ $$ \\__$$ |$$ |__$$ |$$$$$$$$/ $$ \\_____        $$ \\_____ $$ | $$ | $$ |$$ \\__$$ |");
+        Console.WriteLine("$$ | $$  |$$    $$/ $$    $$/ $$       |$$       |       $$       |$$ | $$ | $$ |$$    $$ |");
+        Console.WriteLine("$$/   $$/  $$$$$$/  $$$$$$$/   $$$$$$$/  $$$$$$$/         $$$$$$$/ $$/  $$/  $$/  $$$$$$$/");
+        Console.WriteLine("===========================================================================================");
         Console.WriteLine("Kubec-cmd ⛴️");
         Console.WriteLine("Formula ∑ : V1 ⚛️");
         Console.WriteLine("🛠️---------------------------------------------------------------------------------------------------🛠️");

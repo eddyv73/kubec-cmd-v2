@@ -1,4 +1,4 @@
-﻿namespace kubec_cmd;
+namespace kubec_cmd;
 
 public class Args {
     public string target { get; set; }
@@ -13,6 +13,7 @@ public class ArgsController
         if (args.Length == 1 && args.Contains("--clean"))
         {
             var backfiles = KubeConfigList.ListFilesBackup();
+            Console.WriteLine("Total files deleted : " + backfiles.Count);
             
             return argsList;
         }
