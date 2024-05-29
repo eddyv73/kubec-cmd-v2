@@ -22,6 +22,8 @@ class DirHelper
         Console.WriteLine("===========================================================================================");
         Console.WriteLine("Kubec-cmd ⛴️");
         Console.WriteLine("Formula ∑ : V1 ⚛️");
+        Console.WriteLine("By Eddy Wister");
+        Console.WriteLine("Github 🔗 : https://github.com/eddyv73/kubec-cmd-v2 ");
         Console.WriteLine("🛠️---------------------------------------------------------------------------------------------------🛠️");
         Console.WriteLine("Target file 🎯: kubec-cmd -t 'subfix'");
         Console.WriteLine("🛠️---------------------------------------------------------------------------------------------------🛠️");

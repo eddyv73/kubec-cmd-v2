@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace kubec_cmd;
 
 public class Args {
@@ -9,11 +11,12 @@ public class ArgsController
 {
     public Args ArgsControl (string[] args)
     {
+        Console.OutputEncoding = Encoding.Unicode;
         var argsList = new Args();
         if (args.Length == 1 && args.Contains("--clean"))
         {
             var backfiles = KubeConfigList.ListFilesBackup();
-            Console.WriteLine("Total files deleted : " + backfiles.Count);
+            Console.WriteLine("Total files deleted 🗑️ : " + backfiles.Count);
             
             return argsList;
         }

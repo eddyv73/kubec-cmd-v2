@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using kubec_cmd;
 
 class FilesManager
@@ -62,6 +63,7 @@ class FilesManager
 
     public static void Makebackup()
     {
+        Console.OutputEncoding = Encoding.Unicode;
         // date format date + time
         string result = DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss");
 
@@ -83,6 +85,7 @@ class FilesManager
 
     public static void Clean()
     {
+        Console.OutputEncoding = Encoding.Unicode;
         // If exist file .kube/config
         bool exist = File.Exists(Path.Join(kubeconfig, "config"));
 
@@ -102,6 +105,7 @@ class FilesManager
 
     public static void SwitcherConfig()
     {
+        Console.OutputEncoding = Encoding.Unicode;
         bool existTarget = File.Exists((Path.Join(kubeconfig, "config") + "_" + _target));
 
         if (existTarget)
