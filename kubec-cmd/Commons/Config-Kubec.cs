@@ -4,7 +4,7 @@ public class Config_Kubec
 {
     public string CurrentConfig { get; set; }
     public string backupDirectory { get; set; }
-    ListFiles[] files { get; set; }
+    public ListFiles[] files { get; set; }
     
 }
 

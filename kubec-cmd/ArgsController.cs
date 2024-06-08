@@ -13,6 +13,12 @@ public class ArgsController
     {
         Console.OutputEncoding = Encoding.Unicode;
         var argsList = new Args();
+        var configManager = new ConfigManager();
+        bool exist = configManager.ExistConfig();
+        if (!exist)
+        {
+            configManager.CreateFileConfig();
+        }
         if (args.Length == 1 && args.Contains("--clean"))
         {
             var backfiles = KubeConfigList.ListFilesBackup();
@@ -44,13 +50,20 @@ public class ArgsController
             {
                 Console.WriteLine(file);
             }
+
+            if (files is not null && files.Count > 0)
+            {
+                bool update = configManager.UpdateFileList(files);
+                if (update)
+                    Console.WriteLine("Config file updated");
+            }
         }
         else
         {
             Console.WriteLine("No target file found");
             DirHelper.PrintInstructions();
         }
-
+        
         return argsList;
     }
 }
