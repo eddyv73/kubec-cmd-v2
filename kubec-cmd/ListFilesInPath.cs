@@ -15,15 +15,31 @@ class KubeConfigList
 
         foreach (var file in files)
         {
-            if (file.Name.Contains(Program.GlobalVariables.configsuffix))
+            // Solo mostrar archivos de configuración principales, no backups ni zips
+            bool isConfig = file.Name.Contains(Program.GlobalVariables.configsuffix);
+            bool isBackup = file.Name.Contains(".") && HasDateSuffix(file.Name);
+            bool isZip = file.Extension.Equals(".zip", StringComparison.OrdinalIgnoreCase);
+            bool isBkOrBack = file.Name.Contains("bk") || file.Name.Contains(".back");
+
+            if (isConfig && !isBackup && !isZip && !isBkOrBack)
             {
-                if (!file.Name.Contains("bk") && !file.Name.Contains(".back") && file.Name.Contains(Program.GlobalVariables.configsuffix))
-                {
-                    configFound.Add(file.Name);
-                }
+                configFound.Add(file.Name);
             }
         }
-
         return configFound;
+    }
+
+    /// <summary>
+    /// Detecta si el nombre de archivo tiene un sufijo de fecha típico de backup.
+    /// Ejemplo: config_cashify.19-06-2023_18-22-07
+    /// </summary>
+    private static bool HasDateSuffix(string fileName)
+    {
+        // Busca patrón de fecha: .dd-MM-yyyy_HH-mm-ss
+        var parts = fileName.Split('.');
+        if (parts.Length < 2) return false;
+        var last = parts[parts.Length - 1];
+        DateTime dt;
+        return DateTime.TryParseExact(last, "dd-MM-yyyy_HH-mm-ss", null, System.Globalization.DateTimeStyles.None, out dt);
     }
 }

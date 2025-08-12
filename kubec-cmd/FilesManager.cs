@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using kubec_cmd;
 
 class FilesManager
@@ -142,6 +143,50 @@ class FilesManager
         else
         {
             Console.WriteLine("Target no exist ❌ " + _target);
+        }
+    }
+    /// <summary>
+    /// Comprime todos los backups antiguos en la carpeta de backup, dejando solo el más reciente sin comprimir.
+    /// Los backups comprimidos se guardan como .zip y el último backup permanece descomprimido.
+    /// </summary>
+    /// <param name="backupDir">Ruta de la carpeta de backups. Si es null, usa la ruta por defecto.</param>
+    public static void ZipOldBackups(string backupDir = null)
+    {
+        string dir = backupDir ?? dirbk;
+        try
+        {
+            var backupFiles = new DirectoryInfo(dir).GetFiles()
+                .Where(f => !f.Extension.Equals(".zip", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(f => f.LastWriteTime)
+                .ToList();
+
+            if (backupFiles.Count <= 1)
+                return; // Nada que comprimir
+
+            // El más reciente queda sin comprimir
+            var filesToZip = backupFiles.Skip(1);
+            foreach (var file in filesToZip)
+            {
+                string zipPath = Path.Combine(dir, Path.GetFileNameWithoutExtension(file.Name) + ".zip");
+                try
+                {
+                    using (var zip = new System.IO.Compression.ZipArchive(
+                        File.Open(zipPath, FileMode.Create),
+                        System.IO.Compression.ZipArchiveMode.Create))
+                    {
+                        zip.CreateEntryFromFile(file.FullName, file.Name);
+                    }
+                    file.Delete();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error al comprimir backup {file.Name}: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error en ZipOldBackups: {ex.Message}");
         }
     }
 }
