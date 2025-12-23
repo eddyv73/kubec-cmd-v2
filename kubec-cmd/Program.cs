@@ -1,4 +1,6 @@
-﻿namespace kubec_cmd;
+using System.Text;
+
+namespace kubec_cmd;
 
 class Program
 {
@@ -9,9 +11,13 @@ class Program
         private const string _context = "";
     }
 
-    
+
     static void Main(string[] args)
     {
+        // Configure UTF-8 encoding for proper emoji display on all terminals
+        Console.OutputEncoding = Encoding.UTF8;
+        Console.InputEncoding = Encoding.UTF8;
+
         ArgsController _args = new ArgsController();
         var res = _args.ArgsControl(args);
     }
