@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using kubec_cmd;
 
-class FilesManager
+public class FilesManager
 {
     private static string _target;
     private static string _context;

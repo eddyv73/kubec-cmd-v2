@@ -18,6 +18,15 @@ class Program
         Console.OutputEncoding = Encoding.UTF8;
         Console.InputEncoding = Encoding.UTF8;
 
+        // If no args or --interactive flag, run interactive mode
+        if (args.Length == 0 || args.Contains("-i") || args.Contains("--interactive"))
+        {
+            var shell = new InteractiveShell();
+            shell.Run();
+            return;
+        }
+
+        // Otherwise run traditional CLI mode
         ArgsController _args = new ArgsController();
         var res = _args.ArgsControl(args);
     }

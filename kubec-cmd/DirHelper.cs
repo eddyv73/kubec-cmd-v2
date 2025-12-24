@@ -4,7 +4,7 @@
 
 using System;
 
-class DirHelper
+public class DirHelper
 {
     private const string VERSION = "V2.0";
 
@@ -37,6 +37,8 @@ $$/   $$/  $$$$$$/  $$$$$$$/   $$$$$$$/  $$$$$$$/         $$$$$$$/ $$/  $$/  $$/
     {
         string separator = "\u2692---------------------------------------------------------------------------------------------------\u2692"; // Hammer symbols
 
+        Console.WriteLine(separator);
+        Console.WriteLine("Interactive mode \u2728: kubec-cmd (no args) or kubec-cmd -i"); // Sparkles
         Console.WriteLine(separator);
         Console.WriteLine("Target file \u25CE: kubec-cmd -t 'subfix'"); // Bullseye
         Console.WriteLine(separator);
