@@ -1,33 +1,30 @@
 using System;
 using System.IO;
+using System.Text;
 using Xunit;
 using kubec_cmd;
 
 namespace kubec_cmd.Tests;
 
+// Disable parallel execution for these tests since they modify Console.Out
+[Collection("ConsoleTests")]
 public class ArgsControllerTests
 {
-    private readonly ArgsController _controller;
-    private readonly TextWriter _originalOut;
-
-    public ArgsControllerTests()
-    {
-        _controller = new ArgsController();
-        _originalOut = Console.Out;
-    }
-
     [Fact]
     public void ArgsControl_WithNoArgs_ReturnsEmptyArgs()
     {
         // Arrange
-        var args = Array.Empty<string>();
-        using var output = new StringWriter();
-        Console.SetOut(output);
+        var originalOut = Console.Out;
+        var output = new StringWriter();
+        var controller = new ArgsController();
 
         try
         {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.SetOut(output);
+
             // Act
-            var result = _controller.ArgsControl(args);
+            var result = controller.ArgsControl(Array.Empty<string>());
 
             // Assert
             Assert.NotNull(result);
@@ -36,7 +33,8 @@ public class ArgsControllerTests
         }
         finally
         {
-            Console.SetOut(_originalOut);
+            Console.SetOut(originalOut);
+            output.Dispose();
         }
     }
 
@@ -44,23 +42,29 @@ public class ArgsControllerTests
     public void ArgsControl_WithSingleArg_PrintsInstructions()
     {
         // Arrange
-        var args = new string[] { "invalid" };
-        using var output = new StringWriter();
-        Console.SetOut(output);
+        var originalOut = Console.Out;
+        var output = new StringWriter();
+        var controller = new ArgsController();
 
         try
         {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.SetOut(output);
+
             // Act
-            var result = _controller.ArgsControl(args);
+            var result = controller.ArgsControl(new[] { "invalid" });
+
+            // Get output before restoring
+            var outputText = output.ToString();
 
             // Assert
             Assert.NotNull(result);
-            var outputText = output.ToString();
             Assert.Contains("Kubec-cmd", outputText);
         }
         finally
         {
-            Console.SetOut(_originalOut);
+            Console.SetOut(originalOut);
+            output.Dispose();
         }
     }
 
@@ -68,14 +72,17 @@ public class ArgsControllerTests
     public void ArgsControl_WithTargetFlag_SetsTargetAndHandlesFilesystem()
     {
         // Arrange
-        var args = new string[] { "-t", "test-config" };
-        using var output = new StringWriter();
-        Console.SetOut(output);
+        var originalOut = Console.Out;
+        var output = new StringWriter();
+        var controller = new ArgsController();
 
         try
         {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.SetOut(output);
+
             // Act - May throw if .kube directory doesn't exist in CI
-            var result = _controller.ArgsControl(args);
+            var result = controller.ArgsControl(new[] { "-t", "test-config" });
 
             // Assert - If we get here, filesystem exists
             Assert.Equal("test-config", result.target);
@@ -83,12 +90,12 @@ public class ArgsControllerTests
         catch (DirectoryNotFoundException)
         {
             // Expected in CI environment where ~/.kube doesn't exist
-            // Test passes - we verified the code handles this gracefully
             Assert.True(true);
         }
         finally
         {
-            Console.SetOut(_originalOut);
+            Console.SetOut(originalOut);
+            output.Dispose();
         }
     }
 
@@ -96,14 +103,17 @@ public class ArgsControllerTests
     public void ArgsControl_WithListFlag_HandlesFilesystem()
     {
         // Arrange
-        var args = new string[] { "--list" };
-        using var output = new StringWriter();
-        Console.SetOut(output);
+        var originalOut = Console.Out;
+        var output = new StringWriter();
+        var controller = new ArgsController();
 
         try
         {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.SetOut(output);
+
             // Act - May throw if .kube directory doesn't exist in CI
-            var result = _controller.ArgsControl(args);
+            var result = controller.ArgsControl(new[] { "--list" });
 
             // Assert
             Assert.NotNull(result);
@@ -115,7 +125,8 @@ public class ArgsControllerTests
         }
         finally
         {
-            Console.SetOut(_originalOut);
+            Console.SetOut(originalOut);
+            output.Dispose();
         }
     }
 
@@ -123,22 +134,29 @@ public class ArgsControllerTests
     public void ArgsControl_WithTargetFlagButNoValue_PrintsNoTargetFound()
     {
         // Arrange
-        var args = new string[] { "-t" };
-        using var output = new StringWriter();
-        Console.SetOut(output);
+        var originalOut = Console.Out;
+        var output = new StringWriter();
+        var controller = new ArgsController();
 
         try
         {
-            // Act
-            var result = _controller.ArgsControl(args);
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.SetOut(output);
 
-            // Assert
+            // Act
+            var result = controller.ArgsControl(new[] { "-t" });
+
+            // Get output before restoring
             var outputText = output.ToString();
+
+            // Assert - Check that the output contains the expected message
+            // Note: The message is printed before the instructions banner
             Assert.Contains("No target file found", outputText);
         }
         finally
         {
-            Console.SetOut(_originalOut);
+            Console.SetOut(originalOut);
+            output.Dispose();
         }
     }
 
