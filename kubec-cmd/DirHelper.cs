@@ -4,7 +4,7 @@
 
 using System;
 
-class DirHelper
+public class DirHelper
 {
     private const string VERSION = "V2.0";
 
