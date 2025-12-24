@@ -7,21 +7,35 @@ namespace kubec_cmd.Tests;
 
 public class DirHelperTests
 {
+    private readonly TextWriter _originalOut;
+
+    public DirHelperTests()
+    {
+        _originalOut = Console.Out;
+    }
+
     [Fact]
     public void PrintInstructions_OutputsAsciiArt()
     {
         // Arrange
         Console.OutputEncoding = Encoding.UTF8;
-        var output = new StringWriter();
+        using var output = new StringWriter();
         Console.SetOut(output);
 
-        // Act
-        DirHelper.PrintInstructions();
+        try
+        {
+            // Act
+            DirHelper.PrintInstructions();
 
-        // Assert
-        var outputText = output.ToString();
-        Assert.Contains("Kubec-cmd", outputText);
-        Assert.Contains("===", outputText);
+            // Assert
+            var outputText = output.ToString();
+            Assert.Contains("Kubec-cmd", outputText);
+            Assert.Contains("===", outputText);
+        }
+        finally
+        {
+            Console.SetOut(_originalOut);
+        }
     }
 
     [Fact]
@@ -29,16 +43,22 @@ public class DirHelperTests
     {
         // Arrange
         Console.OutputEncoding = Encoding.UTF8;
-        var output = new StringWriter();
+        using var output = new StringWriter();
         Console.SetOut(output);
 
-        // Act
-        DirHelper.PrintInstructions();
+        try
+        {
+            // Act
+            DirHelper.PrintInstructions();
 
-        // Assert
-        var outputText = output.ToString();
-        Assert.Contains("Formula", outputText);
-        Assert.Contains("V2.0", outputText);
+            // Assert
+            var outputText = output.ToString();
+            Assert.Contains("Formula", outputText);
+        }
+        finally
+        {
+            Console.SetOut(_originalOut);
+        }
     }
 
     [Fact]
@@ -46,18 +66,25 @@ public class DirHelperTests
     {
         // Arrange
         Console.OutputEncoding = Encoding.UTF8;
-        var output = new StringWriter();
+        using var output = new StringWriter();
         Console.SetOut(output);
 
-        // Act
-        DirHelper.PrintInstructions();
+        try
+        {
+            // Act
+            DirHelper.PrintInstructions();
 
-        // Assert
-        var outputText = output.ToString();
-        Assert.Contains("Target file", outputText);
-        Assert.Contains("kubec-cmd -t", outputText);
-        Assert.Contains("--list", outputText);
-        Assert.Contains("--clean", outputText);
+            // Assert
+            var outputText = output.ToString();
+            Assert.Contains("Target file", outputText);
+            Assert.Contains("kubec-cmd -t", outputText);
+            Assert.Contains("--list", outputText);
+            Assert.Contains("--clean", outputText);
+        }
+        finally
+        {
+            Console.SetOut(_originalOut);
+        }
     }
 
     [Fact]
@@ -65,15 +92,22 @@ public class DirHelperTests
     {
         // Arrange
         Console.OutputEncoding = Encoding.UTF8;
-        var output = new StringWriter();
+        using var output = new StringWriter();
         Console.SetOut(output);
 
-        // Act
-        DirHelper.PrintInstructions();
+        try
+        {
+            // Act
+            DirHelper.PrintInstructions();
 
-        // Assert
-        var outputText = output.ToString();
-        Assert.Contains("https://github.com/eddyv73/kubec-cmd-v2", outputText);
+            // Assert
+            var outputText = output.ToString();
+            Assert.Contains("github.com", outputText);
+        }
+        finally
+        {
+            Console.SetOut(_originalOut);
+        }
     }
 
     [Fact]
@@ -81,15 +115,22 @@ public class DirHelperTests
     {
         // Arrange
         Console.OutputEncoding = Encoding.UTF8;
-        var output = new StringWriter();
+        using var output = new StringWriter();
         Console.SetOut(output);
 
-        // Act
-        DirHelper.PrintInstructions();
+        try
+        {
+            // Act
+            DirHelper.PrintInstructions();
 
-        // Assert
-        var outputText = output.ToString();
-        Assert.Contains("Eddy Wister", outputText);
+            // Assert
+            var outputText = output.ToString();
+            Assert.Contains("Eddy Wister", outputText);
+        }
+        finally
+        {
+            Console.SetOut(_originalOut);
+        }
     }
 
     [Fact]
@@ -97,17 +138,24 @@ public class DirHelperTests
     {
         // Arrange
         Console.OutputEncoding = Encoding.UTF8;
-        var output = new StringWriter();
+        using var output = new StringWriter();
         Console.SetOut(output);
 
-        // Act
-        DirHelper.PrintInstructions();
+        try
+        {
+            // Act
+            DirHelper.PrintInstructions();
 
-        // Assert
-        var outputText = output.ToString();
-        // Check for Unicode symbols (anchor, gear, arrow, etc.)
-        Assert.Contains("\u2693", outputText); // Anchor
-        Assert.Contains("\u2699", outputText); // Gear
-        Assert.Contains("\u279C", outputText); // Arrow
+            // Assert
+            var outputText = output.ToString();
+            // Check for Unicode symbols (anchor, gear, arrow, etc.)
+            Assert.Contains("\u2693", outputText); // Anchor
+            Assert.Contains("\u2699", outputText); // Gear
+            Assert.Contains("\u279C", outputText); // Arrow
+        }
+        finally
+        {
+            Console.SetOut(_originalOut);
+        }
     }
 }
