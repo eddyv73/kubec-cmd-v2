@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using kubec_cmd;
 
-class KubeConfigList
+public class KubeConfigList
 {
     public static List<string> ListFilesInPath()
     {
