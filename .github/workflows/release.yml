@@ -1,0 +1,166 @@
+# This workflow builds and releases kubec-cmd for multiple platforms
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: 'kubec-cmd/kubec-cmd.csproj'
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux builds
+          - target: linux-x64
+            os: ubuntu-latest
+            artifact_name: kubec-cmd
+            asset_name: kubec-cmd-linux-x64
+
+          - target: linux-arm64
+            os: ubuntu-latest
+            artifact_name: kubec-cmd
+            asset_name: kubec-cmd-linux-arm64
+
+          # macOS builds
+          - target: osx-x64
+            os: macos-latest
+            artifact_name: kubec-cmd
+            asset_name: kubec-cmd-osx-x64
+
+          - target: osx-arm64
+            os: macos-latest
+            artifact_name: kubec-cmd
+            asset_name: kubec-cmd-osx-arm64
+
+          # Windows builds
+          - target: win-x64
+            os: windows-latest
+            artifact_name: kubec-cmd.exe
+            asset_name: kubec-cmd-win-x64.exe
+
+          - target: win-arm64
+            os: windows-latest
+            artifact_name: kubec-cmd.exe
+            asset_name: kubec-cmd-win-arm64.exe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+
+      - name: Publish
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            --configuration Release \
+            --runtime ${{ matrix.target }} \
+            --self-contained true \
+            --output ./publish/${{ matrix.target }} \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ./publish/${{ matrix.target }}/${{ matrix.artifact_name }}
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+
+          # Linux x64
+          cp ./artifacts/kubec-cmd-linux-x64/kubec-cmd ./release-assets/kubec-cmd-linux-x64
+          chmod +x ./release-assets/kubec-cmd-linux-x64
+
+          # Linux arm64
+          cp ./artifacts/kubec-cmd-linux-arm64/kubec-cmd ./release-assets/kubec-cmd-linux-arm64
+          chmod +x ./release-assets/kubec-cmd-linux-arm64
+
+          # macOS x64
+          cp ./artifacts/kubec-cmd-osx-x64/kubec-cmd ./release-assets/kubec-cmd-osx-x64
+          chmod +x ./release-assets/kubec-cmd-osx-x64
+
+          # macOS arm64
+          cp ./artifacts/kubec-cmd-osx-arm64/kubec-cmd ./release-assets/kubec-cmd-osx-arm64
+          chmod +x ./release-assets/kubec-cmd-osx-arm64
+
+          # Windows x64
+          cp ./artifacts/kubec-cmd-win-x64.exe/kubec-cmd.exe ./release-assets/kubec-cmd-win-x64.exe
+
+          # Windows arm64
+          cp ./artifacts/kubec-cmd-win-arm64.exe/kubec-cmd.exe ./release-assets/kubec-cmd-win-arm64.exe
+
+          # Create checksums
+          cd release-assets
+          sha256sum * > checksums.txt
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          name: kubec-cmd ${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            release-assets/kubec-cmd-linux-x64
+            release-assets/kubec-cmd-linux-arm64
+            release-assets/kubec-cmd-osx-x64
+            release-assets/kubec-cmd-osx-arm64
+            release-assets/kubec-cmd-win-x64.exe
+            release-assets/kubec-cmd-win-arm64.exe
+            release-assets/checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

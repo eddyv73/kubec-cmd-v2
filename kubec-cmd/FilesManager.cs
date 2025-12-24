@@ -75,7 +75,7 @@ class FilesManager
             }
             catch (Exception)
             {
-                Console.WriteLine("Error on Create backup ⚠️");
+                Console.WriteLine("Error on Create backup \u26A0");
             }
         }
     }
@@ -94,7 +94,7 @@ class FilesManager
             }
             catch (Exception)
             {
-                Console.WriteLine("Error on Create backup ⚠️");
+                Console.WriteLine("Error on Create backup \u26A0");
             }
         }
     }
@@ -117,7 +117,7 @@ class FilesManager
             {
                 Console.WriteLine("Ooops! Something went wrong: " + e.Message);
             }
-            Console.WriteLine("Completed ✅");
+            Console.WriteLine("Completed \u2714");
 
             // Cambia el contexto si se especificó
             if (!string.IsNullOrEmpty(_context))
@@ -141,7 +141,7 @@ class FilesManager
         }
         else
         {
-            Console.WriteLine("Target no exist ❌ " + _target);
+            Console.WriteLine("Target no exist \u2718 " + _target);
         }
     }
 }
