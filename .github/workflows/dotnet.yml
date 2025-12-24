@@ -1,4 +1,4 @@
-# This workflow will build a .NET project, run tests, and post evidence to PRs
+# This workflow will build a .NET project and run tests
 name: .NET Build & Test
 
 on:
@@ -26,86 +26,7 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: Run Tests
-      run: dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage"
-
-    - name: Capture Program Output
-      run: |
-        echo "## Program Output Evidence" > output-evidence.md
-        echo "" >> output-evidence.md
-        echo "### Help Menu Output" >> output-evidence.md
-        echo '```' >> output-evidence.md
-        dotnet run --project kubec-cmd/kubec-cmd.csproj -- --help 2>&1 >> output-evidence.md || true
-        echo '```' >> output-evidence.md
-        echo "" >> output-evidence.md
-        echo "### List Command Output" >> output-evidence.md
-        echo '```' >> output-evidence.md
-        dotnet run --project kubec-cmd/kubec-cmd.csproj -- --list 2>&1 >> output-evidence.md || true
-        echo '```' >> output-evidence.md
-        echo "" >> output-evidence.md
-        echo "### Unicode Symbols Verification" >> output-evidence.md
-        echo '```' >> output-evidence.md
-        dotnet run --project kubec-cmd/kubec-cmd.csproj 2>&1 | head -30 >> output-evidence.md
-        echo '```' >> output-evidence.md
-
-    - name: Upload Test Results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: |
-          **/test-results.trx
-          **/coverage.cobertura.xml
-          output-evidence.md
-
-    - name: Post Evidence to PR
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-
-          // Read the evidence file
-          let evidence = '';
-          try {
-            evidence = fs.readFileSync('output-evidence.md', 'utf8');
-          } catch (e) {
-            evidence = 'Could not read evidence file';
-          }
-
-          // Create the comment body
-          const body = `## Test & Build Evidence
-
-          ### Build Status
-          Build completed successfully on \`ubuntu-latest\` with .NET 8.0
-
-          ### Program Output Screenshots
-
-          ${evidence}
-
-          ### Unicode Symbol Reference
-          | Symbol | Code | Description |
-          |--------|------|-------------|
-          | ⚓ | \\u2693 | Anchor |
-          | ⚙ | \\u2699 | Gear |
-          | ➜ | \\u279C | Arrow |
-          | ✔ | \\u2714 | Check |
-          | ✘ | \\u2718 | Cross |
-          | ⚒ | \\u2692 | Hammer |
-          | ◎ | \\u25CE | Bullseye |
-          | ℹ | \\u2139 | Info |
-          | ☰ | \\u2630 | Trigram |
-          | ♲ | \\u2672 | Recycle |
-
-          ---
-          *Generated automatically by GitHub Actions*`;
-
-          // Post comment to PR
-          await github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-            body: body
-          });
+      run: dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Test Report Summary
       if: always()
