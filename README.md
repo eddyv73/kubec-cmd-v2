@@ -73,7 +73,41 @@ kubec-cmd -t staging
 
 ## 📦 Installation
 
-### Option 1: Download Binary (Recommended)
+### Option 1: Quick Install (Recommended)
+
+#### Linux / macOS
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/eddyv73/kubec-cmd-v2/main/install.sh | bash
+```
+
+Or with wget:
+```bash
+wget -qO- https://raw.githubusercontent.com/eddyv73/kubec-cmd-v2/main/install.sh | bash
+```
+
+The installer will:
+- Detect your OS and architecture automatically
+- Download the correct binary
+- Install to `/usr/local/bin`
+- Remove macOS quarantine if needed
+- Show instructions to add to PATH if necessary
+
+#### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/eddyv73/kubec-cmd-v2/main/install.ps1 | iex
+```
+
+The installer will:
+- Detect your architecture (x64/ARM64)
+- Download the correct binary
+- Install to `%LOCALAPPDATA%\kubec-cmd`
+- Add to user PATH automatically
+
+---
+
+### Option 2: Manual Download
 
 Download the latest release for your platform:
 
@@ -84,8 +118,9 @@ Download the latest release for your platform:
 | **macOS** | Intel | [kubec-cmd-osx-x64](https://github.com/eddyv73/kubec-cmd-v2/releases/latest) |
 | **macOS** | Apple Silicon | [kubec-cmd-osx-arm64](https://github.com/eddyv73/kubec-cmd-v2/releases/latest) |
 | **Windows** | x64 | [kubec-cmd-win-x64.exe](https://github.com/eddyv73/kubec-cmd-v2/releases/latest) |
+| **Windows** | ARM64 | [kubec-cmd-win-arm64.exe](https://github.com/eddyv73/kubec-cmd-v2/releases/latest) |
 
-#### Linux/macOS Setup
+#### Linux/macOS Manual Setup
 
 ```bash
 # Download (example for macOS ARM64)
@@ -108,7 +143,9 @@ If macOS shows a security warning, run:
 xattr -d com.apple.quarantine /usr/local/bin/kubec-cmd
 ```
 
-### Option 2: Build from Source
+---
+
+### Option 3: Build from Source
 
 ```bash
 # Clone the repository
