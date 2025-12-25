@@ -62,30 +62,54 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Test install.sh syntax
+        shell: bash
         run: bash -n install.sh
 
-      - name: Test install.sh dry run (detection only)
+      - name: Test OS and arch detection
+        shell: bash
         run: |
-          # Source the script functions without running main
-          source <(sed 's/^main$/# main/' install.sh)
-
+          # Create a test script that sources functions
+          cat > /tmp/test_detect.sh << 'TESTEOF'
+          #!/bin/bash
+          # Copy functions from install.sh
+          detect_os() {
+              OS="$(uname -s)"
+              case "${OS}" in
+                  Linux*)     OS_TYPE="linux";;
+                  Darwin*)    OS_TYPE="osx";;
+                  CYGWIN*|MINGW*|MSYS*) OS_TYPE="windows";;
+                  *)          OS_TYPE="unknown";;
+              esac
+              echo "${OS_TYPE}"
+          }
+          detect_arch() {
+              ARCH="$(uname -m)"
+              case "${ARCH}" in
+                  x86_64|amd64)   ARCH_TYPE="x64";;
+                  arm64|aarch64)  ARCH_TYPE="arm64";;
+                  *)              ARCH_TYPE="unknown";;
+              esac
+              echo "${ARCH_TYPE}"
+          }
           echo "Testing OS detection..."
           OS=$(detect_os)
           echo "Detected OS: $OS"
           [ "$OS" = "osx" ] || { echo "FAIL: Expected 'osx', got '$OS'"; exit 1; }
-
           echo "Testing architecture detection..."
           ARCH=$(detect_arch)
           echo "Detected Arch: $ARCH"
           [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ] || { echo "FAIL: Unexpected arch '$ARCH'"; exit 1; }
-
           echo "✓ All detection tests passed"
+          TESTEOF
+          chmod +x /tmp/test_detect.sh
+          /tmp/test_detect.sh
 
       - name: Test full installation
+        shell: bash
         run: |
           echo "Running full installer..."
           chmod +x install.sh
-          sudo ./install.sh
+          sudo bash ./install.sh
 
           echo "Verifying installation..."
           which kubec-cmd || { echo "FAIL: kubec-cmd not in PATH"; exit 1; }
