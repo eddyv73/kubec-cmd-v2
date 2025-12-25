@@ -1,0 +1,149 @@
+name: Test Installers
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - 'install.sh'
+      - 'install.ps1'
+      - '.github/workflows/test-installers.yml'
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'install.sh'
+      - 'install.ps1'
+      - '.github/workflows/test-installers.yml'
+  workflow_dispatch:
+
+jobs:
+  test-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test install.sh syntax
+        run: bash -n install.sh
+
+      - name: Test install.sh dry run (detection only)
+        run: |
+          # Source the script functions without running main
+          source <(sed 's/^main$/# main/' install.sh)
+
+          echo "Testing OS detection..."
+          OS=$(detect_os)
+          echo "Detected OS: $OS"
+          [ "$OS" = "linux" ] || { echo "FAIL: Expected 'linux', got '$OS'"; exit 1; }
+
+          echo "Testing architecture detection..."
+          ARCH=$(detect_arch)
+          echo "Detected Arch: $ARCH"
+          [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ] || { echo "FAIL: Unexpected arch '$ARCH'"; exit 1; }
+
+          echo "✓ All detection tests passed"
+
+      - name: Test full installation
+        run: |
+          echo "Running full installer..."
+          chmod +x install.sh
+          sudo ./install.sh
+
+          echo "Verifying installation..."
+          which kubec-cmd || { echo "FAIL: kubec-cmd not in PATH"; exit 1; }
+          kubec-cmd --help || { echo "FAIL: kubec-cmd --help failed"; exit 1; }
+
+          echo "✓ Installation test passed"
+
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test install.sh syntax
+        run: bash -n install.sh
+
+      - name: Test install.sh dry run (detection only)
+        run: |
+          # Source the script functions without running main
+          source <(sed 's/^main$/# main/' install.sh)
+
+          echo "Testing OS detection..."
+          OS=$(detect_os)
+          echo "Detected OS: $OS"
+          [ "$OS" = "osx" ] || { echo "FAIL: Expected 'osx', got '$OS'"; exit 1; }
+
+          echo "Testing architecture detection..."
+          ARCH=$(detect_arch)
+          echo "Detected Arch: $ARCH"
+          [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ] || { echo "FAIL: Unexpected arch '$ARCH'"; exit 1; }
+
+          echo "✓ All detection tests passed"
+
+      - name: Test full installation
+        run: |
+          echo "Running full installer..."
+          chmod +x install.sh
+          sudo ./install.sh
+
+          echo "Verifying installation..."
+          which kubec-cmd || { echo "FAIL: kubec-cmd not in PATH"; exit 1; }
+          kubec-cmd --help || { echo "FAIL: kubec-cmd --help failed"; exit 1; }
+
+          echo "✓ Installation test passed"
+
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test install.ps1 syntax
+        shell: pwsh
+        run: |
+          $errors = $null
+          $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content -Raw install.ps1), [ref]$errors)
+          if ($errors) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          Write-Host "✓ PowerShell syntax is valid"
+
+      - name: Test install.ps1 execution
+        shell: pwsh
+        run: |
+          Write-Host "Running installer..."
+          Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+          .\install.ps1
+
+          Write-Host "Verifying installation..."
+          $installPath = Join-Path $env:LOCALAPPDATA "kubec-cmd\kubec-cmd.exe"
+          if (Test-Path $installPath) {
+            Write-Host "✓ Binary installed at: $installPath"
+            & $installPath --help
+            Write-Host "✓ Installation test passed"
+          } else {
+            Write-Error "FAIL: kubec-cmd.exe not found at $installPath"
+            exit 1
+          }
+
+  summary:
+    needs: [test-linux, test-macos, test-windows]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all tests
+        run: |
+          echo "=== Installer Test Summary ==="
+          echo "Linux: ${{ needs.test-linux.result }}"
+          echo "macOS: ${{ needs.test-macos.result }}"
+          echo "Windows: ${{ needs.test-windows.result }}"
+
+          if [ "${{ needs.test-linux.result }}" = "success" ] && \
+             [ "${{ needs.test-macos.result }}" = "success" ] && \
+             [ "${{ needs.test-windows.result }}" = "success" ]; then
+            echo "✓ All installer tests passed!"
+          else
+            echo "✗ Some tests failed"
+            exit 1
+          fi
