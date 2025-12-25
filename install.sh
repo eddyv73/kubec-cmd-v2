@@ -153,6 +153,43 @@ install_binary() {
     if [ "$(detect_os)" = "osx" ]; then
         xattr -d com.apple.quarantine "${install_dir}/${binary_name}" 2>/dev/null || true
     fi
+
+    # Create 'kc' alias symlink
+    create_alias "${install_dir}" "${binary_name}"
+}
+
+# Create 'kc' symlink alias
+create_alias() {
+    local install_dir=$1
+    local binary_name=$2
+    local alias_name="kc"
+
+    # Check if 'kc' command already exists
+    if command -v ${alias_name} &> /dev/null; then
+        local existing_path=$(command -v ${alias_name})
+        # Check if it's already our symlink
+        if [ -L "${existing_path}" ] && [ "$(readlink "${existing_path}")" = "${install_dir}/${binary_name}" ]; then
+            echo -e "  ${GREEN}Alias '${alias_name}' already configured${NC}"
+            return 0
+        else
+            echo -e "  ${YELLOW}Note: '${alias_name}' command already exists at ${existing_path}${NC}"
+            echo -e "  ${YELLOW}Skipping alias creation. You can manually create it:${NC}"
+            echo -e "  ${CYAN}sudo ln -sf ${install_dir}/${binary_name} ${install_dir}/${alias_name}${NC}"
+            return 0
+        fi
+    fi
+
+    # Create symlink
+    echo -e "  ${BLUE}Creating '${alias_name}' alias...${NC}"
+    if [ -w "${install_dir}" ]; then
+        ln -sf "${install_dir}/${binary_name}" "${install_dir}/${alias_name}"
+    else
+        sudo ln -sf "${install_dir}/${binary_name}" "${install_dir}/${alias_name}"
+    fi
+
+    if [ $? -eq 0 ]; then
+        echo -e "  ${GREEN}✓ Alias '${alias_name}' created - you can now use 'kc' instead of 'kubec-cmd'${NC}"
+    fi
 }
 
 # Check if directory is in PATH

@@ -172,6 +172,18 @@ function Main {
     Write-ColorOutput "  Installation complete" "Green"
     Write-Host ""
 
+    # Create 'kc' alias (copy of executable)
+    $aliasPath = Join-Path $InstallDir "kc.exe"
+    if (-not (Test-Path $aliasPath)) {
+        Write-ColorOutput "  Creating 'kc' alias..." "Blue"
+        Copy-Item -Path $installedPath -Destination $aliasPath -Force
+        Write-ColorOutput "  ✓ Alias 'kc' created - you can now use 'kc' instead of 'kubec-cmd'" "Green"
+    }
+    else {
+        Write-ColorOutput "  Alias 'kc' already exists" "Green"
+    }
+    Write-Host ""
+
     # Cleanup temp files
     Remove-Item -Path (Split-Path $tempFile -Parent) -Recurse -Force -ErrorAction SilentlyContinue
 
