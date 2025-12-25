@@ -85,7 +85,7 @@ download_binary() {
         url="${url}.exe"
     fi
 
-    echo -e "${BLUE}Downloading from: ${url}${NC}"
+    echo -e "${BLUE}Downloading from: ${url}${NC}" >&2
 
     # Create temp directory
     TMP_DIR=$(mktemp -d)
