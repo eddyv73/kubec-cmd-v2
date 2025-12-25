@@ -69,9 +69,21 @@ detect_arch() {
 
 # Get latest release version
 get_latest_version() {
-    curl -fsSL "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" | \
+    # Try GitHub API first
+    local version
+    version=$(curl -fsSL "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" 2>/dev/null | \
         grep '"tag_name":' | \
-        sed -E 's/.*"([^"]+)".*/\1/'
+        sed -E 's/.*"([^"]+)".*/\1/')
+
+    # If API fails (rate limit), try getting version from redirect
+    if [ -z "${version}" ]; then
+        version=$(curl -fsSI "https://github.com/${GITHUB_REPO}/releases/latest" 2>/dev/null | \
+            grep -i "location:" | \
+            sed -E 's/.*\/tag\/([^[:space:]]+).*/\1/' | \
+            tr -d '\r')
+    fi
+
+    echo "${version}"
 }
 
 # Download binary
@@ -111,6 +123,23 @@ install_binary() {
 
     # Make executable
     chmod +x "${tmp_file}"
+
+    # Check if install_dir exists but is not a directory (e.g., a file)
+    if [ -e "${install_dir}" ] && [ ! -d "${install_dir}" ]; then
+        echo -e "${YELLOW}Warning: ${install_dir} exists but is not a directory${NC}"
+        echo -e "${YELLOW}Using alternative location: ~/.local/bin${NC}"
+        install_dir="$HOME/.local/bin"
+    fi
+
+    # Create install directory if it doesn't exist
+    if [ ! -d "${install_dir}" ]; then
+        echo -e "${YELLOW}Creating ${install_dir}...${NC}"
+        if [ -w "$(dirname "${install_dir}")" ]; then
+            mkdir -p "${install_dir}"
+        else
+            sudo mkdir -p "${install_dir}"
+        fi
+    fi
 
     # Check if we need sudo
     if [ -w "${install_dir}" ]; then
@@ -233,8 +262,11 @@ main() {
     VERSION=$(get_latest_version)
 
     if [ -z "${VERSION}" ]; then
-        echo -e "${YELLOW}Could not detect latest version, using 'latest'${NC}"
-        VERSION="latest"
+        echo -e "${RED}Error: Could not detect latest version${NC}"
+        echo -e "${YELLOW}This may be due to GitHub API rate limiting.${NC}"
+        echo -e "${YELLOW}Please try again later or download manually from:${NC}"
+        echo -e "${CYAN}https://github.com/${GITHUB_REPO}/releases/latest${NC}"
+        exit 1
     else
         echo -e "  Version: ${GREEN}${VERSION}${NC}"
     fi
