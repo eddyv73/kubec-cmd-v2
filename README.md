@@ -78,12 +78,12 @@ kubec-cmd -t staging
 #### Linux / macOS
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/eddyv73/kubec-cmd-v2/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/eddyv73/kubec-cmd-v2/develop/install.sh | bash
 ```
 
 Or with wget:
 ```bash
-wget -qO- https://raw.githubusercontent.com/eddyv73/kubec-cmd-v2/main/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/eddyv73/kubec-cmd-v2/develop/install.sh | bash
 ```
 
 The installer will:
@@ -96,7 +96,7 @@ The installer will:
 #### Windows (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/eddyv73/kubec-cmd-v2/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/eddyv73/kubec-cmd-v2/develop/install.ps1 | iex
 ```
 
 The installer will:
