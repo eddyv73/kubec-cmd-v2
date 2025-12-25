@@ -145,6 +145,10 @@ jobs:
           if (Test-Path $installPath) {
             Write-Host "✓ Binary installed at: $installPath"
             & $installPath --help
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "FAIL: kubec-cmd --help failed with exit code $LASTEXITCODE"
+              exit 1
+            }
             Write-Host "✓ Installation test passed"
           } else {
             Write-Error "FAIL: kubec-cmd.exe not found at $installPath"
