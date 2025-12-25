@@ -69,9 +69,21 @@ detect_arch() {
 
 # Get latest release version
 get_latest_version() {
-    curl -fsSL "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" | \
+    # Try GitHub API first
+    local version
+    version=$(curl -fsSL "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" 2>/dev/null | \
         grep '"tag_name":' | \
-        sed -E 's/.*"([^"]+)".*/\1/'
+        sed -E 's/.*"([^"]+)".*/\1/')
+
+    # If API fails (rate limit), try getting version from redirect
+    if [ -z "${version}" ]; then
+        version=$(curl -fsSI "https://github.com/${GITHUB_REPO}/releases/latest" 2>/dev/null | \
+            grep -i "location:" | \
+            sed -E 's/.*\/tag\/([^[:space:]]+).*/\1/' | \
+            tr -d '\r')
+    fi
+
+    echo "${version}"
 }
 
 # Download binary
@@ -250,8 +262,11 @@ main() {
     VERSION=$(get_latest_version)
 
     if [ -z "${VERSION}" ]; then
-        echo -e "${YELLOW}Could not detect latest version, using 'latest'${NC}"
-        VERSION="latest"
+        echo -e "${RED}Error: Could not detect latest version${NC}"
+        echo -e "${YELLOW}This may be due to GitHub API rate limiting.${NC}"
+        echo -e "${YELLOW}Please try again later or download manually from:${NC}"
+        echo -e "${CYAN}https://github.com/${GITHUB_REPO}/releases/latest${NC}"
+        exit 1
     else
         echo -e "  Version: ${GREEN}${VERSION}${NC}"
     fi
