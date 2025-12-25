@@ -112,6 +112,13 @@ install_binary() {
     # Make executable
     chmod +x "${tmp_file}"
 
+    # Check if install_dir exists but is not a directory (e.g., a file)
+    if [ -e "${install_dir}" ] && [ ! -d "${install_dir}" ]; then
+        echo -e "${YELLOW}Warning: ${install_dir} exists but is not a directory${NC}"
+        echo -e "${YELLOW}Using alternative location: ~/.local/bin${NC}"
+        install_dir="$HOME/.local/bin"
+    fi
+
     # Create install directory if it doesn't exist
     if [ ! -d "${install_dir}" ]; then
         echo -e "${YELLOW}Creating ${install_dir}...${NC}"
