@@ -1,0 +1,175 @@
+name: Auto Release
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'kubec-cmd/**'
+      - 'kubec-cmd.Tests/**'
+      - '*.sh'
+      - '*.ps1'
+
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          # Get the latest tag, default to v0.0.0 if none exists
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
+          echo "Latest tag: ${LATEST_TAG}"
+
+      - name: Calculate next version
+        id: next_version
+        run: |
+          LATEST_TAG="${{ steps.get_tag.outputs.latest_tag }}"
+
+          # Remove 'v' prefix
+          VERSION=${LATEST_TAG#v}
+
+          # Split into parts
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          # Determine bump type
+          BUMP_TYPE="${{ github.event.inputs.version_bump || 'patch' }}"
+
+          case $BUMP_TYPE in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "New version: ${NEW_VERSION}"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build for all platforms
+        run: |
+          VERSION="${{ steps.next_version.outputs.new_version }}"
+
+          # Define targets
+          declare -a TARGETS=(
+            "linux-x64"
+            "linux-arm64"
+            "osx-x64"
+            "osx-arm64"
+            "win-x64"
+            "win-arm64"
+          )
+
+          mkdir -p release
+
+          for TARGET in "${TARGETS[@]}"; do
+            echo "Building for ${TARGET}..."
+
+            dotnet publish kubec-cmd/kubec-cmd.csproj \
+              -c Release \
+              -r ${TARGET} \
+              --self-contained true \
+              -p:PublishSingleFile=true \
+              -p:Version=${VERSION#v} \
+              -o ./publish/${TARGET}
+
+            # Determine binary name
+            if [[ "${TARGET}" == win-* ]]; then
+              BINARY_NAME="kubec-cmd-${TARGET}.exe"
+              cp ./publish/${TARGET}/kubec-cmd.exe ./release/${BINARY_NAME}
+            else
+              BINARY_NAME="kubec-cmd-${TARGET}"
+              cp ./publish/${TARGET}/kubec-cmd ./release/${BINARY_NAME}
+              chmod +x ./release/${BINARY_NAME}
+            fi
+
+            echo "Built: ${BINARY_NAME}"
+          done
+
+          ls -la release/
+
+      - name: Sign macOS binaries (ad-hoc)
+        run: |
+          # Note: ad-hoc signing only works on macOS runners
+          # For now, we skip signing in this workflow
+          echo "Skipping macOS signing (requires macOS runner)"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.next_version.outputs.new_version }}
+          name: Release ${{ steps.next_version.outputs.new_version }}
+          body: |
+            ## What's Changed
+
+            Auto-generated release from develop branch.
+
+            ### Installation
+
+            **Linux/macOS:**
+            ```bash
+            curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/develop/install.sh | bash
+            ```
+
+            **Windows:**
+            ```powershell
+            irm https://raw.githubusercontent.com/${{ github.repository }}/develop/install.ps1 | iex
+            ```
+
+            ### Downloads
+
+            | Platform | Architecture | File |
+            |----------|--------------|------|
+            | Linux | x64 | kubec-cmd-linux-x64 |
+            | Linux | ARM64 | kubec-cmd-linux-arm64 |
+            | macOS | Intel | kubec-cmd-osx-x64 |
+            | macOS | Apple Silicon | kubec-cmd-osx-arm64 |
+            | Windows | x64 | kubec-cmd-win-x64.exe |
+            | Windows | ARM64 | kubec-cmd-win-arm64.exe |
+          draft: false
+          prerelease: false
+          files: |
+            release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.next_version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifacts:**" >> $GITHUB_STEP_SUMMARY
+          ls release/ | while read f; do echo "- ${f}" >> $GITHUB_STEP_SUMMARY; done
