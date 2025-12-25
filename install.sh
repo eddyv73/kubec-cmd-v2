@@ -112,6 +112,16 @@ install_binary() {
     # Make executable
     chmod +x "${tmp_file}"
 
+    # Create install directory if it doesn't exist
+    if [ ! -d "${install_dir}" ]; then
+        echo -e "${YELLOW}Creating ${install_dir}...${NC}"
+        if [ -w "$(dirname "${install_dir}")" ]; then
+            mkdir -p "${install_dir}"
+        else
+            sudo mkdir -p "${install_dir}"
+        fi
+    fi
+
     # Check if we need sudo
     if [ -w "${install_dir}" ]; then
         mv "${tmp_file}" "${install_dir}/${binary_name}"
