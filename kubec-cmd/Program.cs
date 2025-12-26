@@ -18,7 +18,15 @@ class Program
         Console.OutputEncoding = Encoding.UTF8;
         Console.InputEncoding = Encoding.UTF8;
 
+        // Process arguments
         ArgsController _args = new ArgsController();
         var res = _args.ArgsControl(args);
+
+        // Launch interactive mode if requested
+        if (res.interactive)
+        {
+            var shell = new InteractiveShell();
+            shell.Run();
+        }
     }
 }

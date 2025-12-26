@@ -10,8 +10,8 @@ using kubec_cmd;
 
 public class FilesManager
 {
-    private static string _target;
-    private static string _context;
+    private static string? _target;
+    private static string? _context;
     private static string userfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     private static List<string> _ConfigFound = new List<string>();
     private static string dirbk = Path.Join(userfile, ".kube",".bk"); // Define this path
@@ -143,5 +143,40 @@ public class FilesManager
         {
             Console.WriteLine("Target no exist \u2718 " + _target);
         }
+    }
+
+    public static void CleanBackups()
+    {
+        if (!Directory.Exists(dirbk))
+        {
+            Console.WriteLine("No backup directory found \u2139");
+            return;
+        }
+
+        var backupFiles = Directory.GetFiles(dirbk);
+
+        if (backupFiles.Length == 0)
+        {
+            Console.WriteLine("No backup files to clean \u2714");
+            return;
+        }
+
+        Console.WriteLine($"Found {backupFiles.Length} backup file(s) in {dirbk}");
+
+        int deleted = 0;
+        foreach (var file in backupFiles)
+        {
+            try
+            {
+                File.Delete(file);
+                deleted++;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error deleting {Path.GetFileName(file)}: {e.Message}");
+            }
+        }
+
+        Console.WriteLine($"Cleaned {deleted} backup file(s) \u2672");
     }
 }

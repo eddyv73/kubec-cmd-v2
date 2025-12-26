@@ -38,7 +38,9 @@ $$/   $$/  $$$$$$/  $$$$$$$/   $$$$$$$/  $$$$$$$/         $$$$$$$/ $$/  $$/  $$/
         string separator = "\u2692---------------------------------------------------------------------------------------------------\u2692"; // Hammer symbols
 
         Console.WriteLine(separator);
-        Console.WriteLine("Target file \u25CE: kubec-cmd -t 'subfix'"); // Bullseye
+        Console.WriteLine("Interactive mode \u2728: kubec-cmd -i  or  kc -i"); // Sparkles
+        Console.WriteLine(separator);
+        Console.WriteLine("Target file \u25CE: kubec-cmd -t 'subfix'  or  kc -t 'subfix'"); // Bullseye
         Console.WriteLine(separator);
         Console.WriteLine("Place Target file \u2139 : config_'subfix'"); // Info symbol
         Console.WriteLine(separator);
