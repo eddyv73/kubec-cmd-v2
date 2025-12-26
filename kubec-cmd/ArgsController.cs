@@ -1,8 +1,8 @@
 ﻿namespace kubec_cmd;
 
 public class Args {
-    public string target { get; set; }
-    public string context { get; set; }
+    public string? target { get; set; }
+    public string? context { get; set; }
     public bool interactive { get; set; }
 }
 
