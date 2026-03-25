@@ -25,7 +25,6 @@ public class FilesManager
         _ConfigFound = configFile;
         CreateBackUpDirectory();
         Makebackup();
-        GetConfig();
         Clean();
         SwitcherConfig();
     }

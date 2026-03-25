@@ -15,7 +15,7 @@ public class KubeConfigList
         string kubeconfigPath = Path.Join(userfile, ".kube");
         var configFound = new List<string>();
         var fileManager = new DirectoryInfo(kubeconfigPath);
-        FileInfo[] files = fileManager.GetFiles("*", SearchOption.AllDirectories);
+        FileInfo[] files = fileManager.GetFiles("*", SearchOption.TopDirectoryOnly);
 
         foreach (var file in files)
         {
