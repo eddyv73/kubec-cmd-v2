@@ -35,8 +35,11 @@ jobs:
       - name: Get latest tag
         id: get_tag
         run: |
-          # Get the latest tag, default to v0.0.0 if none exists
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          # Get the latest valid semver tag (vX.Y.Z), default to v0.0.0 if none exists
+          LATEST_TAG=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
+          if [ -z "${LATEST_TAG}" ]; then
+            LATEST_TAG="v0.0.0"
+          fi
           echo "latest_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
           echo "Latest tag: ${LATEST_TAG}"
 
@@ -70,6 +73,11 @@ jobs:
           esac
 
           NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          # Validate version format (must be vX.Y.Z)
+          if ! echo "${NEW_VERSION}" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Error: Invalid version '${NEW_VERSION}'. Must follow vX.Y.Z format."
+            exit 1
+          fi
           echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
           echo "New version: ${NEW_VERSION}"
 
@@ -81,6 +89,11 @@ jobs:
       - name: Build for all platforms
         run: |
           VERSION="${{ steps.next_version.outputs.new_version }}"
+
+          # Sanitize version for dotnet: strip 'v' prefix, ensure valid semver
+          DOTNET_VERSION="${VERSION#v}"
+          DOTNET_VERSION="${DOTNET_VERSION#.}"  # Remove leading dot if present
+          echo "Using dotnet version: ${DOTNET_VERSION}"
 
           # Define targets
           declare -a TARGETS=(
@@ -102,7 +115,7 @@ jobs:
               -r ${TARGET} \
               --self-contained true \
               -p:PublishSingleFile=true \
-              -p:Version=${VERSION#v} \
+              -p:Version=${DOTNET_VERSION} \
               -o ./publish/${TARGET}
 
             # Determine binary name
